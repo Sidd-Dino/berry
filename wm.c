@@ -115,6 +115,8 @@ static void ipc_window_close(long *d);
 static void ipc_window_center(long *d);
 static void ipc_switch_ws(long *d);
 static void ipc_send_to_ws(long *d);
+static void ipc_next_ws(long *d);
+static void ipc_prev_ws(long *d);
 static void ipc_fullscreen(long *d);
 static void ipc_fullscreen_state(long *d);
 static void ipc_snap_left(long *d);
@@ -187,6 +189,8 @@ static const ipc_event_handler_t ipc_handler [IPCLast] = {
     [IPCWindowCenter]             = ipc_window_center,
     [IPCSwitchWorkspace]          = ipc_switch_ws,
     [IPCSendWorkspace]            = ipc_send_to_ws,
+    [IPCNextWorkspace]            = ipc_next_ws,
+    [IPCPrevWorkspace]            = ipc_prev_ws,
     [IPCFullscreen]               = ipc_fullscreen,
     [IPCFullscreenState]          = ipc_fullscreen_state,
     [IPCSnapLeft]                 = ipc_snap_left,
@@ -1002,6 +1006,38 @@ ipc_switch_ws(long *d)
 }
 
 static void
+ipc_next_ws(long *d)
+{
+    UNUSED(d); 
+    int i, end;
+    i = curr_ws + 1;
+    end = conf.cycle_ws ? curr_ws + WORKSPACE_NUMBER : WORKSPACE_NUMBER;
+
+    for (; i < end; i++) {
+        if (c_list[i % WORKSPACE_NUMBER] != NULL) {
+            switch_ws(i % WORKSPACE_NUMBER);
+            break;
+        }
+    }
+}
+
+static void
+ipc_prev_ws(long *d)
+{
+    UNUSED(d); 
+    int i, end;
+    i = curr_ws + WORKSPACE_NUMBER - 1;
+    end = conf.cycle_ws ? curr_ws : WORKSPACE_NUMBER - 1 ;
+
+    for (; i > end; i--) {
+        if (c_list[i % WORKSPACE_NUMBER] != NULL) {
+            switch_ws(i % WORKSPACE_NUMBER);
+            break;
+        }
+    }
+}
+
+static void
 ipc_send_to_ws(long *d)
 {
     if (f_client == NULL)
@@ -1091,7 +1127,6 @@ ipc_pointer_focus(long *d)
         }
     }
 }
-
 static void
 ipc_config(long *d)
 {
@@ -1176,6 +1211,9 @@ ipc_config(long *d)
             break;
         case IPCWarpPointer:
             conf.warp_pointer = d[2];
+            break;
+        case IPCCycleWorkspace:
+            conf.cycle_ws = d[2];
             break;
         default:
             break;
@@ -1980,6 +2018,7 @@ setup(void)
     conf.pointer_interval = POINTER_INTERVAL;
     conf.follow_pointer   = FOLLOW_POINTER;
     conf.warp_pointer     = WARP_POINTER;
+    conf.cycle_ws         = CYCLE_WORKSPACE;
 
     root = DefaultRootWindow(display);
     screen = DefaultScreen(display);

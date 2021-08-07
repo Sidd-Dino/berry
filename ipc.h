@@ -56,6 +56,9 @@ enum IPCCommand
     IPCPointerInterval,
     IPCFocusFollowsPointer,
     IPCWarpPointer,
+    IPCNextWorkspace,
+    IPCPrevWorkspace,
+    IPCCycleWorkspace,
     IPCLast
 };
 
